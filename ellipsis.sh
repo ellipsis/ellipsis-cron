@@ -2,13 +2,13 @@
 ##############################################################################
 
 pkg.link() {
-    fs.link_file "$PKG_PATH/bin/ellipsis-__name_l__" "$ELLIPSIS_PATH/bin/ellipsis-__name_l__"
+    fs.link_file "$PKG_PATH/bin/ellipsis-cron" "$ELLIPSIS_PATH/bin/ellipsis-cron"
 }
 
 ##############################################################################
 
 pkg.unlink() {
-    rm "$ELLIPSIS_PATH/bin/ellipsis-__name_l__"
+    rm "$ELLIPSIS_PATH/bin/ellipsis-cron"
 }
 
 ##############################################################################

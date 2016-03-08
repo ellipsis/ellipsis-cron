@@ -4,7 +4,7 @@
 You can thank all [these][contributors] people for all there hard work.
 
 ### License
-Ellipsis-__name__ is open-source software licensed under the [MIT license][mit-license].
+Ellipsis-Cron is open-source software licensed under the [MIT license][mit-license].
 
-[contrubutors]: https://github.com/ellipsis/ellipsis-__name_l__/graphs/contributors
+[contrubutors]: https://github.com/ellipsis/ellipsis-cron/graphs/contributors
 [mit-license]:  http://opensource.org/licenses/MIT
