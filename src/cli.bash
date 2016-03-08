@@ -8,6 +8,7 @@ load extension
 load msg
 load log
 load git
+load cron
 
 ##############################################################################
 
@@ -19,7 +20,15 @@ Usage: ellipsis-$ELLIPSIS_XNAME_L <command>
     -h, --help     show help
     -v, --version  show version
 
-  Commands:"
+  Commands:
+    add             Add a cron job
+    remove|rm       Remove a cron job
+    enable          Enable an inactive cron job
+    disable         Disable an active cron job
+    list|ls         List cron jobs
+    run             Run a cron job manualy (in current tty)
+    debug           Run a cron job manualy with debug output (bash -x)
+    edit            Edit your crontab manualy"
 }
 
 ##############################################################################
@@ -46,6 +55,30 @@ cli.run() {
     fi
 
     case "$1" in
+        add)
+            cron.add "${@:2}"
+            ;;
+        remove|rm)
+            cron.remove "${@:2}"
+            ;;
+        list | ls)
+            cron.list "${@:2}"
+            ;;
+        enable)
+            cron.enable "${@:2}"
+            ;;
+        disable)
+            cron.disable "${@:2}"
+            ;;
+        run)
+            cron.run "${@:2}"
+            ;;
+        debug)
+            cron.debug "${@:2}"
+            ;;
+        edit)
+            cron.edit
+            ;;
         help|--help|-h)
             cli.usage
             ;;
