@@ -57,5 +57,5 @@ Ellipsis-Cron is open-source software licensed under the [MIT license][mit-licen
 [bats]:         https://github.com/sstephenson/bats
 [issues]:       http://github.com/ellipsis/ellipsis-cron/issues
 
-[contrubutors]: https://github.com/ellipsis/ellipsis-cron/graphs/contributors
+[contributors]: https://github.com/ellipsis/ellipsis-cron/graphs/contributors
 [mit-license]:  http://opensource.org/licenses/MIT
