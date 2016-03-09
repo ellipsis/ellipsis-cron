@@ -27,7 +27,6 @@ Usage: ellipsis-$ELLIPSIS_XNAME_L <command>
     disable         Disable an active cron job
     list|ls         List cron jobs
     run             Run a cron job manualy (in current tty)
-    debug           Run a cron job manualy with debug output (bash -x)
     edit            Edit your crontab manualy"
 }
 
@@ -72,9 +71,6 @@ cli.run() {
             ;;
         run)
             cron.run "${@:2}"
-            ;;
-        debug)
-            cron.run "$2" debug
             ;;
         edit)
             cron.edit

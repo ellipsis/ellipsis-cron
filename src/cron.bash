@@ -135,11 +135,7 @@ cron.run() {
         local cmd="$(cut -d ' ' --complement -f1-5 <<< "$job")"
     fi
 
-    if [ "$opt" = "debug" ]; then
-        (set -x; eval "$cmd")
-    else
-        (eval "$cmd")
-    fi
+    (eval "$cmd")
 }
 
 ##############################################################################
