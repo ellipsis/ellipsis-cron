@@ -135,7 +135,8 @@ cron.run() {
         local cmd="$(cut -d ' ' --complement -f1-5 <<< "$job")"
     fi
 
-    (eval "$cmd")
+    # Reset ellipsis level indentation not needed
+    (ELLIPSIS_LVL=0 eval "$cmd")
 }
 
 ##############################################################################
