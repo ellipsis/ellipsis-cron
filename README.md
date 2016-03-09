@@ -1,9 +1,14 @@
 # Ellipsis-Cron [![Build Status][travis-image]][travis-url] [![Documentation status][docs-image]][docs-url] [![Latest tag][tag-image]][tag-url] [![Gitter chat][gitter-image]][gitter-url]
 
-TODO
+**Warning: The project is in a verry early alpha stage! Run at own risk!**
+
+Ellipsis-Cron is an [Ellipsis][ellipsis] extension to manage cron jobs.
 
 ### Features
-- ...
+- Easy job management
+- Fast job addition and removal
+- Disabling and re-enabling of available jobs
+- Manual job execution
 
 ### Install
 
@@ -27,7 +32,7 @@ TODO
 ### Docs
 Please consult the [docs][docs-url] for more information.
 
-specific parts that could be off interest:
+Specific parts that could be off interest:
 - ...
 
 ### Development
