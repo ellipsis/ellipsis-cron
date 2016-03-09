@@ -74,7 +74,7 @@ cli.run() {
             cron.run "${@:2}"
             ;;
         debug)
-            cron.debug "${@:2}"
+            cron.run "$2" debug
             ;;
         edit)
             cron.edit
