@@ -5,9 +5,10 @@
 ##############################################################################
 
 load extension
-load msg
-load log
 load git
+load log
+load msg
+load utils
 load cron
 
 ##############################################################################
@@ -51,6 +52,18 @@ cli.run() {
         log.fail "Ellipsis-$ELLIPSIS_XNAME v$ELLIPSIS_XVERSION needs at least Ellipsis v$ELLIPSIS_VERSION_DEP"
         msg.print "Please update Ellipsis!"
         exit 1
+    fi
+
+    # Check if crontab is available
+    if ! utils.cmd_exists crontab; then
+        log.fail "Could not run crontab"
+        msg.print "Please make sure crontab is installed"
+        exit 1
+    fi
+
+    # Check if cron daemon is running
+    if [ "$(ps -e | grep -c cron)" -eq 0 ] ; then
+        log.warn "Could not detect running cron daemon!"
     fi
 
     case "$1" in
