@@ -73,7 +73,7 @@ cli.run() {
         remove|rm)
             cron.remove "${@:2}"
             ;;
-        list | ls)
+        installed|list|ls)
             cron.list "${@:2}"
             ;;
         enable)
