@@ -35,8 +35,13 @@ cron.remove() {
     local crontab="$(crontab -l 2> /dev/null)"
 
     if [ "$name" = "all" ]; then
-        # TODO : Remove all jobs added by ellipsis-cron
-        msg.bold "TODO"
+        # Get all (Ellipsis-Cron) job names from the crontab file
+        local job_names="$(awk '/^# Ellipsis-Cron : / { print $NF }' <<< "$crontab")"
+
+        # Delete all jobs
+        for name in $job_names; do
+            cron.remove "$name"
+        done
     else
         # Build sed string
         local sed_string="/^# Ellipsis-Cron : $name\$/ { N; d; }"
