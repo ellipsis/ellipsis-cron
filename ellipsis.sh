@@ -30,8 +30,6 @@ pkg.unlink() {
 ##############################################################################
 
 pkg.uninstall(){
-    "$PKG_PATH/bin/ellipsis-cron" remove all
-
     # Remove crontab warning if present
     local current_crontab="$(crontab -l 2> /dev/null)"
     if grep "$cron_warning" <<< "$current_crontab" > /dev/null; then
