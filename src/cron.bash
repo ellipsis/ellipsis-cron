@@ -9,21 +9,135 @@ load log
 
 ##############################################################################
 
-cron.add() {
+CRONTAB="${CRONTAB:-$(crontab -l 2> /dev/null)}"
+
+##############################################################################
+
+cron.update_crontab() {
+    local log_fail="$1"
+    local log_ok="$2"
+
+    if ! crontab <<< "$CRONTAB"; then
+        log.fail "$log_fail"
+        msg.print "Please check your syntax and try again!"
+        exit 1
+    else
+        log.ok "$log_ok"
+    fi
+}
+
+##############################################################################
+
+cron.get_job() {
+    local name="$1"
+
+    # Build search string to get job
+    local awk_string="f{print; f=0} /^# Ellipsis-Cron : $name\$/{f=1}"
+
+    # Get job
+    awk "$awk_string" <<< "$CRONTAB"
+}
+
+##############################################################################
+
+cron.get_time() {
+    local job="$1"
+
+    if [ "${job:0:1}" = "@" ]; then
+        cut -d ' ' -f1 <<< "$job"
+    else
+        cut -d ' ' -f1-5 <<< "$job"
+    fi
+}
+
+##############################################################################
+
+cron.get_cmd() {
+    local job="$1"
+
+    if [ "${job:0:1}" = "@" ]; then
+        cut -d ' ' --complement -f1 <<< "$job"
+    else
+        cut -d ' ' --complement -f1-5 <<< "$job"
+    fi
+}
+
+##############################################################################
+
+cron.add_new() {
     local name="$1"
     local time="$2"
     local cmd="$3"
 
-    # Remove, then add
-    cron.remove "$name"
+    # Add newline if crontab is not empty
+    if [ -n "$CRONTAB" ]; then
+        CRONTAB="$CRONTAB"$'\n'
+    fi
 
-    # Buffer crontab content
-    local crontab="$(crontab -l 2> /dev/null)"
-    local crontab="\
-$crontab
-# Ellipsis-Cron : $name
-$time $cmd"
-    echo "$crontab" | crontab
+    # Add job to crontab string
+    CRONTAB="$CRONTAB""# Ellipsis-Cron : $name"$'\n'"$time $cmd"
+}
+
+##############################################################################
+
+cron.update_job() {
+    local name="$1"
+    local time="$2"
+    local cmd="$3"
+
+    local job="$(cron.get_job "$name")"
+    local c_time="$(cron.get_time "$job")"
+    local c_cmd="$(cron.get_cmd "$job")"
+
+    if [ "$time" == "$c_time" -a "${cmd:-$c_cmd}" == "$c_cmd" ]; then
+        # Do nothing if time and command are the same
+        msg.print "Nothing to be done"
+        return 0
+    else
+        # Replace job line with new values
+        local sed_string="/^# Ellipsis-Cron : $name\$/ { n; s/.*/$time ${cmd:-$c_cmd}/ }"
+        CRONTAB="$(sed "$sed_string" <<< "$CRONTAB")"
+    fi
+}
+
+##############################################################################
+
+cron.add() {
+    local name="$1"
+    if [ -z "$name" ]; then
+        log.fail "Please provide a valid job name"
+        exit 1
+    fi
+
+    local time="$2"
+    if [ -z "$time" ]; then
+        log.fail "Please provide a valid time string"
+        exit 1
+    fi
+
+    local cmd="$3"
+    local job="$(cron.get_job "$name")"
+
+    if [ -z "$job" ]; then
+        if [-z "$cmd" ]; then
+            log.fail "Please provide a valid command"
+            exit 1
+        fi
+
+        # Add new cron job
+        cron.add_new "$name" "$time" "$cmd"
+
+        local log_fail="Could not add job '$name'"
+        local log_ok="Added job '$name'"
+    else
+        # Update existing job
+        cron.update_job "$name" "$time" "$cmd"
+
+        local log_fail="Could not update job '$name'"
+        local log_ok="Updated job '$name'"
+    fi
+
+    cron.update_crontab "$log_fail" "$log_ok"
 }
 
 ##############################################################################
