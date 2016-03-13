@@ -28,6 +28,12 @@ cron.update_crontab() {
 
 ##############################################################################
 
+cron.list_jobs() {
+    awk '/^# Ellipsis-Cron : / { print $NF }' <<< "$CRONTAB"
+}
+
+##############################################################################
+
 cron.get_job() {
     local name="$1"
 
@@ -119,7 +125,7 @@ cron.add() {
     local job="$(cron.get_job "$name")"
 
     if [ -z "$job" ]; then
-        if [-z "$cmd" ]; then
+        if [ -z "$cmd" ]; then
             log.fail "Please provide a valid command"
             exit 1
         fi
@@ -145,21 +151,22 @@ cron.add() {
 cron.remove() {
     local name="$1"
 
-    # Buffer crontab content
-    local crontab="$(crontab -l 2> /dev/null)"
-
     if [ "$name" = "all" ]; then
-        # Get all (Ellipsis-Cron) job names from the crontab file
-        local job_names="$(awk '/^# Ellipsis-Cron : / { print $NF }' <<< "$crontab")"
-
         # Delete all jobs
-        for name in $job_names; do
+        for name in $(cron.list_jobs); do
             cron.remove "$name"
         done
+    elif [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
+        log.fail "Please provide a valid job name"
+        exit 1
     else
         # Build sed string
         local sed_string="/^# Ellipsis-Cron : $name\$/ { N; d; }"
-        sed "$sed_string" <<< "$crontab" | crontab
+        CRONTAB="$(sed "$sed_string" <<< "$CRONTAB")"
+
+        local log_fail="Could not remove job '$name'"
+        local log_ok="Removed job '$name'"
+        cron.update_crontab "$log_fail" "$log_ok"
     fi
 }
 
