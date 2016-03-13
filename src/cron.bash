@@ -37,6 +37,9 @@ cron.list_jobs() {
 cron.get_job() {
     local name="$1"
 
+    # Escape name string for awk usage
+    name="$(sed 's/[\/&]/\\&/g' <<< "$name")"
+
     # Build search string to get job
     local awk_string="f{print; f=0} /^# Ellipsis-Cron : $name\$/{f=1}"
 
@@ -48,8 +51,13 @@ cron.get_job() {
 
 cron.get_time() {
     local job="$1"
+    local cln_job="$1"
 
-    if [ "${job:0:1}" = "@" ]; then
+    if [ "${cln_job:0:1}" = "#" ]; then
+        cln_job="${cln_job:1}"
+    fi
+
+    if [ "${cln_job:0:1}" = "@" ]; then
         cut -d ' ' -f1 <<< "$job"
     else
         cut -d ' ' -f1-5 <<< "$job"
@@ -60,8 +68,13 @@ cron.get_time() {
 
 cron.get_cmd() {
     local job="$1"
+    local cln_job="$1"
 
-    if [ "${job:0:1}" = "@" ]; then
+    if [ "${cln_job:0:1}" = "#" ]; then
+        cln_job="${cln_job:1}"
+    fi
+
+    if [ "${cln_job:0:1}" = "@" ]; then
         cut -d ' ' --complement -f1 <<< "$job"
     else
         cut -d ' ' --complement -f1-5 <<< "$job"
@@ -100,8 +113,13 @@ cron.update_job() {
         msg.print "Nothing to be done"
         return 0
     else
+        # Escape name, time and cmd string for sed usage
+        name="$(sed 's/[\/&]/\\&/g' <<< "$name")"
+        time="$(sed 's/[\/&]/\\&/g' <<< "$time")"
+        cmd="$(sed 's/[\/&]/\\&/g' <<< "${cmd:-$c_cmd}")"
+
         # Replace job line with new values
-        local sed_string="/^# Ellipsis-Cron : $name\$/ { n; s/.*/$time ${cmd:-$c_cmd}/ }"
+        local sed_string="/^# Ellipsis-Cron : $name\$/ { n; s/.*/$time $cmd/ }"
         CRONTAB="$(sed "$sed_string" <<< "$CRONTAB")"
     fi
 }
@@ -150,6 +168,10 @@ cron.add() {
 
 cron.remove() {
     local name="$1"
+    if [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
+        log.fail "Please provide a valid job name"
+        exit 1
+    fi
 
     if [ "$name" = "all" ]; then
         # Delete all jobs
@@ -160,6 +182,9 @@ cron.remove() {
         log.fail "Please provide a valid job name"
         exit 1
     else
+        # Escape name string for sed usage
+        name="$(sed 's/[\/&]/\\&/g' <<< "$name")"
+
         # Build sed string
         local sed_string="/^# Ellipsis-Cron : $name\$/ { N; d; }"
         CRONTAB="$(sed "$sed_string" <<< "$CRONTAB")"
@@ -174,62 +199,54 @@ cron.remove() {
 
 cron.enable() {
     local name="$1"
+    if [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
+        log.fail "Please provide a valid job name"
+        exit 1
+    fi
 
-    # Buffer crontab content
-    local crontab="$(crontab -l 2> /dev/null)"
-
-    # Build search string to get job
-    local awk_string="f{print; f=0} /^# Ellipsis-Cron : $name\$/{f=1}"
-
-    # Get the job
-    local job="$(awk "$awk_string" <<< "$crontab")"
+    local job="$(cron.get_job "$name")"
 
     # Remove leading #'s
     if [ "${job:0:1}" = "#" ]; then
         job="${job:1}"
-    fi
 
-    # Extract time and command
-    if [ "${job:0:1}" = "@" ]; then
-        local time="$(cut -d ' ' -f1 <<< "$job")"
-        local cmd="$(cut -d ' ' --complement -f1 <<< "$job")"
+        local time="$(cron.get_time "$job")"
+        local cmd="$(cron.get_cmd "$job")"
+
+        cron.update_job "$name" "$time" "$cmd"
+
+        local log_fail="Could not enable job '$name'"
+        local log_ok="Enabled job '$name'"
+        cron.update_crontab "$log_fail" "$log_ok"
     else
-        local time="$(cut -d ' ' -f1-5 <<< "$job")"
-        local cmd="$(cut -d ' ' --complement -f1-5 <<< "$job")"
+        msg.print "Job already enabled"
     fi
-
-    cron.add "$name" "$time" "$cmd"
 }
 
 ##############################################################################
 
 cron.disable() {
     local name="$1"
+    if [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
+        log.fail "Please provide a valid job name"
+        exit 1
+    fi
 
-    # Buffer crontab content
-    local crontab="$(crontab -l 2> /dev/null)"
+    local job="$(cron.get_job "$name")"
 
-    # Build search string to get job
-    local awk_string="f{print; f=0} /^# Ellipsis-Cron : $name\$/{f=1}"
-
-    # Get the job
-    local job="$(awk "$awk_string" <<< "$crontab")"
-
-    # Remove leading #'s (if disabled already)
+    # Only disable if needed
     if [ "${job:0:1}" = "#" ]; then
-        job="${job:1}"
-    fi
-
-    # Extract time and command
-    if [ "${job:0:1}" = "@" ]; then
-        local time="$(cut -d ' ' -f1 <<< "$job")"
-        local cmd="$(cut -d ' ' --complement -f1 <<< "$job")"
+        msg.print "Job already disabled!"
     else
-        local time="$(cut -d ' ' -f1-5 <<< "$job")"
-        local cmd="$(cut -d ' ' --complement -f1-5 <<< "$job")"
-    fi
+        local time="$(cron.get_time "$job")"
+        local cmd="$(cron.get_cmd "$job")"
 
-    cron.add "$name" "#$time" "$cmd"
+        cron.update_job "$name" "#$time" "$cmd"
+
+        local log_fail="Could not disable job '$name'"
+        local log_ok="Disabled job '$name'"
+        cron.update_crontab "$log_fail" "$log_ok"
+    fi
 }
 
 ##############################################################################
