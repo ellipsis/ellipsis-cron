@@ -253,32 +253,15 @@ cron.disable() {
 
 cron.run() {
     local name="$1"
-    local opt="$2"
-
-    # Buffer crontab content
-    local crontab="$(crontab -l 2> /dev/null)"
-
-    # Build search string to get job
-    local awk_string="f{print; f=0} /^# Ellipsis-Cron : $name\$/{f=1}"
-
-    # Get the job
-    local job="$(awk "$awk_string" <<< "$crontab")"
-
-    # Remove leading #'s
-    if [ "${job:0:1}" = "#" ]; then
-        job="${job:1}"
+    if [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
+        log.fail "Please provide a valid job name"
+        exit 1
     fi
 
-    # Extract time and command
-    if [ "${job:0:1}" = "@" ]; then
-        local time="$(cut -d ' ' -f1 <<< "$job")"
-        local cmd="$(cut -d ' ' --complement -f1 <<< "$job")"
-    else
-        local time="$(cut -d ' ' -f1-5 <<< "$job")"
-        local cmd="$(cut -d ' ' --complement -f1-5 <<< "$job")"
-    fi
+    local job="$(cron.get_job "$name")"
+    local cmd="$(cron.get_cmd "$job")"
 
-    # Reset ellipsis level indentation not needed
+    # Reset ellipsis level, indentation for cron.run not needed
     (ELLIPSIS_LVL=0 eval "$cmd")
 }
 
