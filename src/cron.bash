@@ -268,19 +268,11 @@ cron.run() {
 ##############################################################################
 
 cron.list() {
-    # Buffer crontab content
-    local crontab="$(crontab -l 2> /dev/null)"
-
-    # Get all (Ellipsis-Cron) job names from the crontab file
-    local job_names="$(awk '/^# Ellipsis-Cron : / { print $NF }' <<< "$crontab")"
 
     # Print all jobs
-    for name in $job_names; do
-        # Build search string to get job
-        local awk_string="f{print; f=0} /^# Ellipsis-Cron : $name\$/{f=1}"
+    for name in $(cron.list_jobs); do
 
-        # Get the job
-        local job="$(awk "$awk_string" <<< "$crontab")"
+        local job="$(cron.get_job "$name")"
 
         local color1="\033[32m"
         local color2="\033[0m"
@@ -292,14 +284,8 @@ cron.list() {
             color2="\033[0m"
         fi
 
-        # Extract time and command
-        if [ "${job:0:1}" = "@" ]; then
-            local time="$(cut -d ' ' -f1 <<< "$job")"
-            local cmd="$(cut -d ' ' --complement -f1 <<< "$job")"
-        else
-            local time="$(cut -d ' ' -f1-5 <<< "$job")"
-            local cmd="$(cut -d ' ' --complement -f1-5 <<< "$job")"
-        fi
+        local time="$(cron.get_time "$job")"
+        local cmd="$(cron.get_cmd "$job")"
 
         msg.print "$color1$name$color2"
         msg.print "  $time"
