@@ -129,13 +129,13 @@ cron.update_job() {
 cron.add() {
     local name="$1"
     if [ -z "$name" ]; then
-        log.fail "Please provide a valid job name"
+        msg.print "Please provide a valid job name"
         exit 1
     fi
 
     local time="$2"
     if [ -z "$time" ]; then
-        log.fail "Please provide a valid time string"
+        msg.print "Please provide a valid time string"
         exit 1
     fi
 
@@ -144,7 +144,7 @@ cron.add() {
 
     if [ -z "$job" ]; then
         if [ -z "$cmd" ]; then
-            log.fail "Please provide a valid command"
+            msg.print "Please provide a valid command"
             exit 1
         fi
 
@@ -169,7 +169,7 @@ cron.add() {
 cron.remove() {
     local name="$1"
     if [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
-        log.fail "Please provide a valid job name"
+        msg.print "Please provide a valid job name"
         exit 1
     fi
 
@@ -200,7 +200,7 @@ cron.remove() {
 cron.enable() {
     local name="$1"
     if [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
-        log.fail "Please provide a valid job name"
+        msg.print "Please provide a valid job name"
         exit 1
     fi
 
@@ -228,7 +228,7 @@ cron.enable() {
 cron.disable() {
     local name="$1"
     if [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
-        log.fail "Please provide a valid job name"
+        msg.print "Please provide a valid job name"
         exit 1
     fi
 
@@ -254,7 +254,7 @@ cron.disable() {
 cron.run() {
     local name="$1"
     if [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
-        log.fail "Please provide a valid job name"
+        msg.print "Please provide a valid job name"
         exit 1
     fi
 
