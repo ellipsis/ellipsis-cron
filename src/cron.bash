@@ -75,9 +75,9 @@ cron.get_cmd() {
     fi
 
     if [ "${cln_job:0:1}" = "@" ]; then
-        cut -d ' ' --complement -f1 <<< "$job"
+        cut -d ' ' -f2- <<< "$job"
     else
-        cut -d ' ' --complement -f1-5 <<< "$job"
+        cut -d ' ' -f6- <<< "$job"
     fi
 }
 
@@ -119,7 +119,7 @@ cron.update_job() {
         cmd="$(sed 's/[\/&]/\\&/g' <<< "${cmd:-$c_cmd}")"
 
         # Replace job line with new values
-        local sed_string="/^# Ellipsis-Cron : $name\$/ { n; s/.*/$time $cmd/ }"
+        local sed_string="/^# Ellipsis-Cron : $name\$/ { n; s/.*/$time $cmd/; }"
         CRONTAB="$(sed "$sed_string" <<< "$CRONTAB")"
     fi
 }
