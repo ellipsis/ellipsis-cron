@@ -68,21 +68,27 @@ cli.run() {
 
     case "$1" in
         add)
+            cron.init
             cron.add "${@:2}"
             ;;
         remove|rm)
+            cron.init
             cron.remove "${@:2}"
             ;;
         installed|list|ls)
+            cron.init
             cron.list "${@:2}"
             ;;
         enable)
+            cron.init
             cron.enable "${@:2}"
             ;;
         disable)
+            cron.init
             cron.disable "${@:2}"
             ;;
         run)
+            cron.init
             cron.run "${@:2}"
             ;;
         edit)
