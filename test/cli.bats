@@ -54,4 +54,41 @@ load cli
     [ $(expr "$output" : "v[0-9][0-9.]*") -ne 0 ]
 }
 
+@test "cli.run fails if Ellipsis version is not sufficient" {
+    ELLIPSIS_VERSION="1.4.7"\
+    run cli.run
+    [ "$status" -eq 1 ]
+    [ "${lines[0]}" = "[FAIL] Ellipsis-$ELLIPSIS_XNAME v$ELLIPSIS_XVERSION needs at least Ellipsis v$ELLIPSIS_VERSION_DEP" ]
+    [ "${lines[1]}" = "Please update Ellipsis!" ]
+}
+
+@test "cli.run fails if crontab is not available" {
+    # Custom cmd_exists function for this test
+    utils.cmd_exists() {
+        if [ "$1" = "crontab" ]; then
+            return 1
+        else
+            return 0
+        fi
+    }
+
+    run cli.run
+    [ "$status" -eq 1 ]
+    [ "${lines[0]}" = "[FAIL] Could not run crontab" ]
+    [ "${lines[1]}" = "Please make sure crontab is installed" ]
+}
+
+@test "cli.run warns if cron daemon is not running" {
+    # custom ps function for this test
+    ps() {
+        :
+    }
+
+    # Run test
+    CRONTAB=""\
+    run cli.run list
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "[warn] Could not detect running cron daemon!" ]
+}
+
 ##############################################################################
