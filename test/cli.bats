@@ -84,9 +84,8 @@ load cli
         :
     }
 
-    # Run test
     CRONTAB=""\
-    run cli.run list
+    run cli.run -v
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "[warn] Could not detect running cron daemon!" ]
 }
