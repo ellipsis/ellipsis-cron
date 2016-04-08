@@ -1,0 +1,2 @@
+# Ellipsis-Cron : ellipsis.test_new
+@reboot echo "test"
