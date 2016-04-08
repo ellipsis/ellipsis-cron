@@ -1,6 +1,6 @@
 # Ellipsis-Cron [![Build Status][travis-image]][travis-url] [![Documentation status][docs-image]][docs-url] [![Latest tag][tag-image]][tag-url] [![Gitter chat][gitter-image]][gitter-url]
 
-**Warning: The project is in a verry early alpha stage! Run at own risk!**
+**Warning: The project is in a early alpha stage! Run at own risk!**
 
 Ellipsis-Cron is an [Ellipsis][ellipsis] extension to manage cron jobs.
 
@@ -42,7 +42,7 @@ Pull requests welcome! New code should follow the [existing style][style-guide]
 Suggest a feature or report a bug? Create an [issue][issues]!
 
 ### Author(s)
-You can thank all [these][contributors] people for all there hard work.
+You can thank [these][contributors] people for all there hard work.
 
 ### License
 Ellipsis-Cron is open-source software licensed under the [MIT license][mit-license].
