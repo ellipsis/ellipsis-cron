@@ -8,7 +8,7 @@ source "$ELLIPSIS_SRC/version.bash"
 ##############################################################################
 
 # Extension version
-ELLIPSIS_XVERSION="0.0.3-Alpha"
+ELLIPSIS_XVERSION="0.0.4-Alpha"
 # Ellipsis version dependency
 ELLIPSIS_VERSION_DEP="1.5.0"
 
