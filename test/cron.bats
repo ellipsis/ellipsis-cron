@@ -14,6 +14,15 @@ teardown() {
     rm -rf "$TESTS_DIR/tmp"
 }
 
+##############################################################################
+
+# Make sure local crontab isn't altered by accident
+crontab() {
+    :
+}
+
+##############################################################################
+
 helper.cron.init() {
     # Custom crontab command for this test
     crontab() {
@@ -30,6 +39,11 @@ helper.cron.add_new() {
 
 helper.cron.update_job() {
     cron.update_job "$@"
+    echo "$CRONTAB"
+}
+
+helper.cron.remove() {
+    cron.remove "$@"
     echo "$CRONTAB"
 }
 
@@ -164,20 +178,147 @@ helper.cron.update_job() {
     [ "${lines[1]}" = '@reboot echo "test2"' ]
 }
 
-@test "cron.add adds or updates job in crontab" {
-    skip "No test implementation"
+@test "cron.add adds new jobs" {
+    cron.add_new() {
+        echo "cron.add_new $@"
+    }
+    cron.update_crontab() {
+        echo "cron.update_crontab"
+    }
+
+    run cron.add ellipsis.test @reboot 'echo "test"'
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "cron.add_new ellipsis.test @reboot echo \"test\"" ]
+    [ "${lines[1]}" = "cron.update_crontab" ]
+}
+
+@test "cron.add updates existing jobs" {
+    cron.update_job() {
+        echo "cron.update_job $@"
+    }
+    cron.update_crontab() {
+        echo "cron.update_crontab"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.add ellipsis.test @reboot 'echo "test"'
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "cron.update_job ellipsis.test @reboot echo \"test\"" ]
+    [ "${lines[1]}" = "cron.update_crontab" ]
+}
+
+@test "cron.add fails if job name is missing" {
+    run cron.add
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid job name" ]
+}
+
+@test "cron.add fails if time is missing" {
+    run cron.add ellipsis.test
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid time string" ]
+}
+
+@test "cron.add fails if new job is missing a command" {
+    run cron.add ellipsis.test @reboot
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid command" ]
 }
 
 @test "cron.remove removes job from crontab" {
-    skip "No test implementation"
+    cron.update_crontab() {
+        echo "cron.update_crontab"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file3.cron")"
+    run helper.cron.remove ellipsis.test_new
+    [ "$status" -eq 0 ]
+    [ "$output" = "cron.update_crontab"$'\n'"$(cat "$TESTS_DIR/crontab/file1.cron")" ]
 }
 
-@test "cron.enable enables job" {
-    skip "No test implementation"
+@test "cron.remove fails if job name is invalid" {
+    run cron.remove
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid job name" ]
+
+    run cron.remove ellipsis.invalid
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid job name" ]
 }
 
-@test "cron.disable disables job" {
-    skip "No test implementation"
+@test "cron.remove all removes all jobs from crontab" {
+    cron.update_crontab() {
+        :
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run helper.cron.remove all
+    [ "$status" -eq 0 ]
+    [ "$output" = "$(cat "$TESTS_DIR/crontab/file1.cron.clean")" ]
+}
+
+@test "cron.enable does nothing for already enabled job" {
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.enable ellipsis.test
+    [ "$status" -eq 0 ]
+    [ "$output" = "Job already enabled" ]
+}
+
+@test "cron.enable enables disabled job" {
+    cron.update_job() {
+        echo "cron.update_job $@"
+    }
+    cron.update_crontab() {
+        echo "cron.update_crontab"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.enable ellipsis.disabled
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "cron.update_job ellipsis.disabled @reboot echo \"ellipsis.test\"" ]
+    [ "${lines[1]}" = "cron.update_crontab" ]
+}
+
+@test "cron.enable fails if job name is invalid" {
+    run cron.enable
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid job name" ]
+
+    run cron.enable ellipsis.invalid
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid job name" ]
+}
+
+@test "cron.disable does nothing for already disabled job" {
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.disable ellipsis.disabled
+    [ "$status" -eq 0 ]
+    [ "$output" = "Job already disabled" ]
+}
+
+@test "cron.disable disables enabled job" {
+    cron.update_job() {
+        echo "cron.update_job $@"
+    }
+    cron.update_crontab() {
+        echo "cron.update_crontab"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.disable ellipsis.test
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "cron.update_job ellipsis.test #@reboot echo \"ellipsis.test\"" ]
+    [ "${lines[1]}" = "cron.update_crontab" ]
+}
+
+@test "cron.disable fails if job name is invalid" {
+    run cron.disable
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid job name" ]
+
+    run cron.disable ellipsis.invalid
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid job name" ]
 }
 
 @test "cron.run runs job" {

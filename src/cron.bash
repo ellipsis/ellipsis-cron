@@ -170,10 +170,6 @@ cron.add() {
 
 cron.remove() {
     local name="$1"
-    if [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
-        msg.print "Please provide a valid job name"
-        exit 1
-    fi
 
     if [ "$name" = "all" ]; then
         # Delete all jobs
@@ -181,7 +177,7 @@ cron.remove() {
             cron.remove "$name"
         done
     elif [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
-        log.fail "Please provide a valid job name"
+        msg.print "Please provide a valid job name"
         exit 1
     else
         # Escape name string for sed usage
@@ -238,7 +234,7 @@ cron.disable() {
 
     # Only disable if needed
     if [ "${job:0:1}" = "#" ]; then
-        msg.print "Job already disabled!"
+        msg.print "Job already disabled"
     else
         local time="$(cron.get_time "$job")"
         local cmd="$(cron.get_cmd "$job")"
