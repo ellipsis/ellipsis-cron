@@ -47,6 +47,11 @@ helper.cron.remove() {
     echo "$CRONTAB"
 }
 
+helper.cron.rename() {
+    cron.rename "$@"
+    echo "$CRONTAB"
+}
+
 ##############################################################################
 
 @test "cron.init reads the crontab contents from '\$CRONTAB' first" {
@@ -208,18 +213,30 @@ helper.cron.remove() {
 }
 
 @test "cron.add fails if job name is missing" {
+    cron.update_crontab() {
+        echo "ERROR"
+    }
+
     run cron.add
     [ "$status" -eq 1 ]
     [ "$output" = "Please provide a valid job name" ]
 }
 
 @test "cron.add fails if time is missing" {
+    cron.update_crontab() {
+        echo "ERROR"
+    }
+
     run cron.add ellipsis.test
     [ "$status" -eq 1 ]
     [ "$output" = "Please provide a valid time string" ]
 }
 
 @test "cron.add fails if new job is missing a command" {
+    cron.update_crontab() {
+        echo "ERROR"
+    }
+
     run cron.add ellipsis.test @reboot
     [ "$status" -eq 1 ]
     [ "$output" = "Please provide a valid command" ]
@@ -237,6 +254,10 @@ helper.cron.remove() {
 }
 
 @test "cron.remove fails if job name is invalid" {
+    cron.update_crontab() {
+        echo "ERROR"
+    }
+
     run cron.remove
     [ "$status" -eq 1 ]
     [ "$output" = "Please provide a valid job name" ]
@@ -255,6 +276,46 @@ helper.cron.remove() {
     run helper.cron.remove all
     [ "$status" -eq 0 ]
     [ "$output" = "$(cat "$TESTS_DIR/crontab/file1.cron.clean")" ]
+}
+
+@test "cron.rename renames a job in the crontab" {
+    cron.update_crontab() {
+        echo "cron.update_crontab"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run helper.cron.rename ellipsis.test ellipsis.test_new
+    [ "$status" -eq 0 ]
+    [ "$output" = "cron.update_crontab"$'\n'"$(cat "$TESTS_DIR/crontab/file1.cron.rename")" ]
+}
+
+@test "cron.rename fails if job name is invalid" {
+    cron.update_crontab() {
+        echo "ERROR"
+    }
+
+    run cron.rename
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid job name" ]
+
+    run cron.rename ellipsis.invalid
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid job name" ]
+}
+
+@test "cron.rename fails if new job name is invalid" {
+    cron.update_crontab() {
+        echo "ERROR"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.rename ellipsis.test
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a new job name" ]
+
+    run cron.rename ellipsis.test ellipsis.disabled
+    [ "$status" -eq 1 ]
+    [ "$output" = "Job 'ellipsis.disabled' already exists" ]
 }
 
 @test "cron.enable does nothing for already enabled job" {

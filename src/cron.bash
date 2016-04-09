@@ -195,6 +195,39 @@ cron.remove() {
 
 ##############################################################################
 
+cron.rename() {
+    local name="$1"
+    if [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
+        msg.print "Please provide a valid job name"
+        exit 1
+    fi
+
+    local name_new="$2"
+    if [ -z "$name_new" ]; then
+        msg.print "Please provide a new job name"
+        exit 1
+    fi
+
+    if [ ! -z "$(cron.get_job "$name_new")" ]; then
+        msg.print "Job '$name_new' already exists"
+        exit 1
+    else
+        # Escape name and name_new string for sed usage
+        name="$(sed 's/[\/&]/\\&/g' <<< "$name")"
+        name_new="$(sed 's/[\/&]/\\&/g' <<< "$name_new")"
+
+        # Replace job line with new values
+        local sed_string="s/^# Ellipsis-Cron : $name\$/# Ellipsis-Cron : $name_new/"
+        CRONTAB="$(sed "$sed_string" <<< "$CRONTAB")"
+
+        local log_fail="Could not rename job '$name' to '$name_new'"
+        local log_ok="Renamed job '$name' to '$name_new'"
+        cron.update_crontab "$log_fail" "$log_ok"
+    fi
+}
+
+##############################################################################
+
 cron.enable() {
     local name="$1"
     if [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then

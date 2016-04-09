@@ -1,0 +1,11 @@
+@reboot echo "test"
+
+# Ellipsis-Cron : ellipsis.update
+@reboot $HOME/.ellipsis/bin/ellipsis update >/dev/null 2>&1
+
+# Random comment!
+
+# Ellipsis-Cron : ellipsis.test_new
+@reboot echo "ellipsis.test"
+# Ellipsis-Cron : ellipsis.disabled
+#@reboot echo "ellipsis.test"

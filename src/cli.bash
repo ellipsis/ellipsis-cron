@@ -22,13 +22,14 @@ Usage: ellipsis-$ELLIPSIS_XNAME_L <command>
     -v, --version  show version
 
   Commands:
-    add             Add a cron job
-    remove|rm       Remove a cron job
-    enable          Enable an inactive cron job
-    disable         Disable an active cron job
-    list|ls         List cron jobs
-    run             Run a cron job manualy (in current tty)
-    edit            Edit your crontab manualy"
+    add                 Add a cron job
+    remove,rm           Remove a cron job
+    rename,mv           Rename a cron job
+    enable              Enable an inactive cron job
+    disable             Disable an active cron job
+    installed,list,ls   List cron jobs
+    run                 Run a cron job manualy (in current tty)
+    edit                Edit your crontab manualy"
 }
 
 ##############################################################################
@@ -74,6 +75,10 @@ cli.run() {
         remove|rm)
             cron.init
             cron.remove "${@:2}"
+            ;;
+        rename|mv)
+            cron.init
+            cron.rename "${@:2}"
             ;;
         installed|list|ls)
             cron.init
