@@ -22,7 +22,9 @@ Usage: ellipsis-$ELLIPSIS_XNAME_L <command>
     -v, --version  show version
 
   Commands:
-    add                 Add a cron job
+    add                 Add a new cron job
+    chtime              Change time of existing job
+    chcmd               Change command of existing job
     remove,rm           Remove a cron job
     rename,mv           Rename a cron job
     enable              Enable an inactive cron job
@@ -71,6 +73,14 @@ cli.run() {
         add)
             cron.init
             cron.add "${@:2}"
+            ;;
+        chtime)
+            cron.init
+            cron.chtime "${@:2}"
+            ;;
+        chcmd)
+            cron.init
+            cron.chcmd "${@:2}"
             ;;
         remove|rm)
             cron.init

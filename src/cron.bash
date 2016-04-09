@@ -85,45 +85,19 @@ cron.get_cmd() {
 
 ##############################################################################
 
-cron.add_new() {
-    local name="$1"
-    local time="$2"
-    local cmd="$3"
-
-    # Add newline if crontab is not empty
-    if [ -n "$CRONTAB" ]; then
-        CRONTAB="$CRONTAB"$'\n'
-    fi
-
-    # Add job to crontab string
-    CRONTAB="$CRONTAB""# Ellipsis-Cron : $name"$'\n'"$time $cmd"
-}
-
-##############################################################################
-
 cron.update_job() {
     local name="$1"
     local time="$2"
     local cmd="$3"
 
-    local job="$(cron.get_job "$name")"
-    local c_time="$(cron.get_time "$job")"
-    local c_cmd="$(cron.get_cmd "$job")"
+    # Escape name, time and cmd string for sed usage
+    name="$(sed 's/[\/&]/\\&/g' <<< "$name")"
+    time="$(sed 's/[\/&]/\\&/g' <<< "$time")"
+    cmd="$(sed 's/[\/&]/\\&/g' <<< "$cmd")"
 
-    if [ "$time" == "$c_time" -a "${cmd:-$c_cmd}" == "$c_cmd" ]; then
-        # Do nothing if time and command are the same
-        msg.print "Nothing to be done"
-        return 0
-    else
-        # Escape name, time and cmd string for sed usage
-        name="$(sed 's/[\/&]/\\&/g' <<< "$name")"
-        time="$(sed 's/[\/&]/\\&/g' <<< "$time")"
-        cmd="$(sed 's/[\/&]/\\&/g' <<< "${cmd:-$c_cmd}")"
-
-        # Replace job line with new values
-        local sed_string="/^# Ellipsis-Cron : $name\$/ { n; s/.*/$time $cmd/; }"
-        CRONTAB="$(sed "$sed_string" <<< "$CRONTAB")"
-    fi
+    # Replace job line with new values
+    local sed_string="/^# Ellipsis-Cron : $name\$/ { n; s/.*/$time $cmd/; }"
+    CRONTAB="$(sed "$sed_string" <<< "$CRONTAB")"
 }
 
 ##############################################################################
@@ -142,28 +116,91 @@ cron.add() {
     fi
 
     local cmd="$3"
-    local job="$(cron.get_job "$name")"
+    if [ -z "$cmd" ]; then
+        msg.print "Please provide a valid command"
+        exit 1
+    fi
 
-    if [ -z "$job" ]; then
-        if [ -z "$cmd" ]; then
-            msg.print "Please provide a valid command"
-            exit 1
+    if [ ! -z "$(cron.get_job "$name")" ]; then
+        msg.print "Job '$name' already exists"
+        exit 1
+    else
+        # Add newline if crontab is not empty
+        if [ -n "$CRONTAB" ]; then
+            CRONTAB="$CRONTAB"$'\n'
         fi
 
-        # Add new cron job
-        cron.add_new "$name" "$time" "$cmd"
+        # Add job to crontab string
+        CRONTAB="$CRONTAB""# Ellipsis-Cron : $name"$'\n'"$time $cmd"
 
         local log_fail="Could not add job '$name'"
         local log_ok="Added job '$name'"
-    else
-        # Update existing job
-        cron.update_job "$name" "$time" "$cmd"
+        cron.update_crontab "$log_fail" "$log_ok"
+    fi
+}
 
-        local log_fail="Could not update job '$name'"
-        local log_ok="Updated job '$name'"
+##############################################################################
+
+cron.chtime() {
+    local name="$1"
+    if [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
+        msg.print "Please provide a valid job name"
+        exit 1
     fi
 
-    cron.update_crontab "$log_fail" "$log_ok"
+    local time="$2"
+    if [ -z "$time" ]; then
+        msg.print "Please provide a valid time string"
+        exit 1
+    fi
+
+    local job="$(cron.get_job "$name")"
+    local c_time="$(cron.get_time "$job")"
+    local c_cmd="$(cron.get_cmd "$job")"
+
+    # Do nothing if time and command are the same
+    if [ "$time" == "$c_time" ]; then
+        msg.print "Nothing to be done"
+    else
+        # Update existing job
+        cron.update_job "$name" "$time" "$c_cmd"
+
+        local log_fail="Could not change time for job '$name'"
+        local log_ok="Changed time for job '$name'"
+        cron.update_crontab "$log_fail" "$log_ok"
+    fi
+}
+
+##############################################################################
+
+cron.chcmd() {
+    local name="$1"
+    if [ -z "$name" -o -z "$(cron.get_job "$name")" ]; then
+        msg.print "Please provide a valid job name"
+        exit 1
+    fi
+
+    local cmd="$2"
+    if [ -z "$cmd" ]; then
+        msg.print "Please provide a valid command"
+        exit 1
+    fi
+
+    local job="$(cron.get_job "$name")"
+    local c_time="$(cron.get_time "$job")"
+    local c_cmd="$(cron.get_cmd "$job")"
+
+    # Do nothing if time and command are the same
+    if [ "$cmd" == "$c_cmd" ]; then
+        msg.print "Nothing to be done"
+    else
+        # Update existing job
+        cron.update_job "$name" "$c_time" "$cmd"
+
+        local log_fail="Could not change command for job '$name'"
+        local log_ok="Changed command for job '$name'"
+        cron.update_crontab "$log_fail" "$log_ok"
+    fi
 }
 
 ##############################################################################

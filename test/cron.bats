@@ -32,24 +32,28 @@ helper.cron.init() {
     echo "$CRONTAB"
 }
 
-helper.cron.add_new() {
-    cron.add_new "$@"
-    echo "$CRONTAB"
+helper.cron.update_job() {
+    cron.update_job "$@" && echo "$CRONTAB"
 }
 
-helper.cron.update_job() {
-    cron.update_job "$@"
-    echo "$CRONTAB"
+helper.cron.add() {
+    cron.add "$@" && echo "$CRONTAB"
+}
+
+helper.cron.chtime() {
+    cron.chtime "$@" && echo "$CRONTAB"
+}
+
+helper.cron.chcmd() {
+    cron.chcmd "$@" && echo "$CRONTAB"
 }
 
 helper.cron.remove() {
-    cron.remove "$@"
-    echo "$CRONTAB"
+    cron.remove "$@" && echo "$CRONTAB"
 }
 
 helper.cron.rename() {
-    cron.rename "$@"
-    echo "$CRONTAB"
+    cron.rename "$@" && echo "$CRONTAB"
 }
 
 ##############################################################################
@@ -152,24 +156,7 @@ helper.cron.rename() {
     [ "$output" = "echo test" ]
 }
 
-@test "cron.add_new adds new job to crontab" {
-    CRONTAB=""
-    run helper.cron.add_new ellipsis.test_new '@reboot' 'echo "test"'
-    [ "$status" -eq 0 ]
-    [ "$output" = "$(cat "$TESTS_DIR/crontab/file2.cron")" ]
-
-    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
-    run helper.cron.add_new ellipsis.test_new '@reboot' 'echo "test"'
-    [ "$status" -eq 0 ]
-    [ "$output" = "$(cat "$TESTS_DIR/crontab/file3.cron")" ]
-}
-
 @test "cron.update_job updates job in crontab" {
-    CRONTAB="$(cat "$TESTS_DIR/crontab/file2.cron")"
-    run helper.cron.update_job ellipsis.test_new '@reboot' 'echo "test"'
-    [ "$status" -eq 0 ]
-    [ "$output" = "Nothing to be done"$'\n'"$(cat "$TESTS_DIR/crontab/file2.cron")" ]
-
     CRONTAB="$(cat "$TESTS_DIR/crontab/file2.cron")"
     run helper.cron.update_job ellipsis.test_new '@hourly' 'echo "test"'
     [ "$status" -eq 0 ]
@@ -183,33 +170,20 @@ helper.cron.rename() {
     [ "${lines[1]}" = '@reboot echo "test2"' ]
 }
 
-@test "cron.add adds new jobs" {
-    cron.add_new() {
-        echo "cron.add_new $@"
-    }
+@test "cron.add adds new job to crontab" {
     cron.update_crontab() {
         echo "cron.update_crontab"
     }
 
-    run cron.add ellipsis.test @reboot 'echo "test"'
+    CRONTAB=""
+    run helper.cron.add ellipsis.test_new '@reboot' 'echo "test"'
     [ "$status" -eq 0 ]
-    [ "${lines[0]}" = "cron.add_new ellipsis.test @reboot echo \"test\"" ]
-    [ "${lines[1]}" = "cron.update_crontab" ]
-}
-
-@test "cron.add updates existing jobs" {
-    cron.update_job() {
-        echo "cron.update_job $@"
-    }
-    cron.update_crontab() {
-        echo "cron.update_crontab"
-    }
+    [ "$output" = "cron.update_crontab"$'\n'"$(cat "$TESTS_DIR/crontab/file2.cron")" ]
 
     CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
-    run cron.add ellipsis.test @reboot 'echo "test"'
+    run helper.cron.add ellipsis.test_new '@reboot' 'echo "test"'
     [ "$status" -eq 0 ]
-    [ "${lines[0]}" = "cron.update_job ellipsis.test @reboot echo \"test\"" ]
-    [ "${lines[1]}" = "cron.update_crontab" ]
+    [ "$output" = "cron.update_crontab"$'\n'"$(cat "$TESTS_DIR/crontab/file3.cron")" ]
 }
 
 @test "cron.add fails if job name is missing" {
@@ -232,12 +206,126 @@ helper.cron.rename() {
     [ "$output" = "Please provide a valid time string" ]
 }
 
-@test "cron.add fails if new job is missing a command" {
+@test "cron.add fails if command is missing" {
     cron.update_crontab() {
         echo "ERROR"
     }
 
     run cron.add ellipsis.test @reboot
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid command" ]
+}
+
+@test "cron.add fails if job already exists" {
+    cron.update_crontab() {
+        echo "ERROR"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.add ellipsis.test @reboot 'echo "test"'
+    [ "$status" -eq 1 ]
+    [ "$output" = "Job 'ellipsis.test' already exists" ]
+}
+
+@test "cron.chtime changes time string of a job" {
+    cron.update_crontab() {
+        echo "cron.update_crontab"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file2.cron")"
+    run helper.cron.chtime ellipsis.test_new '@hourly'
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "cron.update_crontab" ]
+    [ "${lines[1]}" = "# Ellipsis-Cron : ellipsis.test_new" ]
+    [ "${lines[2]}" = '@hourly echo "test"' ]
+}
+
+@test "cron.chtime only alters crontab if needed" {
+    cron.update_crontab() {
+        echo "ERROR"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file2.cron")"
+    run helper.cron.chtime ellipsis.test_new '@reboot'
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "Nothing to be done" ]
+}
+
+@test "cron.chtime fails if job name is invalid" {
+    cron.update_crontab() {
+        echo "ERROR"
+    }
+
+    CRONTAB=""
+    run cron.chtime
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid job name" ]
+
+    CRONTAB=""
+    run cron.chtime ellipsis.test
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid job name" ]
+}
+
+@test "cron.chtime fails if new time is missing" {
+    cron.update_crontab() {
+        echo "ERROR"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.chtime ellipsis.test
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid time string" ]
+}
+
+@test "cron.chcmd changes command of a job" {
+    cron.update_crontab() {
+        echo "cron.update_crontab"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file2.cron")"
+    run helper.cron.chcmd ellipsis.test_new 'echo "test2"'
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "cron.update_crontab" ]
+    [ "${lines[1]}" = "# Ellipsis-Cron : ellipsis.test_new" ]
+    [ "${lines[2]}" = '@reboot echo "test2"' ]
+}
+
+@test "cron.chcmd only alters crontab if needed" {
+    cron.update_crontab() {
+        echo "ERROR"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file2.cron")"
+    run helper.cron.chcmd ellipsis.test_new 'echo "test"'
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "Nothing to be done" ]
+}
+
+
+@test "cron.chcmd fails if job name is invalid" {
+    cron.update_crontab() {
+        echo "ERROR"
+    }
+
+    CRONTAB=""
+    run cron.chcmd
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid job name" ]
+
+    CRONTAB=""
+    run cron.chcmd ellipsis.test
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid job name" ]
+}
+
+@test "cron.chcmd fails if new cmd is missing" {
+    cron.update_crontab() {
+        echo "ERROR"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.chcmd ellipsis.test
     [ "$status" -eq 1 ]
     [ "$output" = "Please provide a valid command" ]
 }
