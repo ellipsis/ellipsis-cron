@@ -109,31 +109,41 @@ helper.cron.rename() {
 }
 
 @test "cron.print_job prints job" {
-    skip "No test implementation"
     # Enabled
     CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
     ELLIPSIS_FORCE_COLOR=1
-    run cron.print_job ellipsis.update
+    run cron.print_job ellipsis.test
     [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "[32mellipsis.test[0m" ]
+    [ "${lines[1]}" = "  @reboot" ]
+    [ "${lines[2]}" = '  echo "ellipsis.test"' ]
 
     # Disabled
     CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
     ELLIPSIS_FORCE_COLOR=1
     run cron.print_job ellipsis.disabled
     [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "[33mellipsis.disabled[0m" ]
+    [ "${lines[1]}" = "  @reboot" ]
+    [ "${lines[2]}" = '  echo "ellipsis.test"' ]
 }
 
 @test "cron.print_job prints job (non-interactive)" {
-    skip "No test implementation"
     # Enabled
     CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
-    run cron.print_job ellipsis.update
+    run cron.print_job ellipsis.test
     [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "ellipsis.test (enabled)" ]
+    [ "${lines[1]}" = "  @reboot" ]
+    [ "${lines[2]}" = '  echo "ellipsis.test"' ]
 
     # Disabled
     CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
     run cron.print_job ellipsis.disabled
     [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "ellipsis.disabled (disabled)" ]
+    [ "${lines[1]}" = "  @reboot" ]
+    [ "${lines[2]}" = '  echo "ellipsis.test"' ]
 }
 
 @test "cron.get_job returns cron job" {

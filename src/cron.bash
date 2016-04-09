@@ -32,14 +32,16 @@ cron.update_crontab() {
 
 cron.print_job() {
     local name=$1
+
     local job="$(cron.get_job "$name")"
 
+    local status="enabled"
     local color1="\033[32m"
     local color2="\033[0m"
 
-    # Remove leading #'s and mark disabled
     if [ "${job:0:1}" = "#" ]; then
         job="${job:1}"
+        status="disabled"
         color1="\033[33m"
         color2="\033[0m"
     fi
@@ -47,7 +49,13 @@ cron.print_job() {
     local time="$(cron.get_time "$job")"
     local cmd="$(cron.get_cmd "$job")"
 
-    msg.print "$color1$name$color2"
+    # Interactive mode
+    if [ -t 1 ] || [ -n "$ELLIPSIS_FORCE_COLOR" ]; then
+        msg.print "$color1$name$color2"
+    else
+        msg.print "$name ($status)"
+    fi
+
     msg.print "  $time"
     msg.print "  $cmd"
 }
