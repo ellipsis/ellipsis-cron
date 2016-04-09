@@ -1,9 +1,3 @@
-[32mellipsis.update[0m
-  @reboot
-  $HOME/.ellipsis/bin/ellipsis update >/dev/null 2>&1
-[32mellipsis.test[0m
-  @reboot
-  echo "ellipsis.test"
-[33mellipsis.disabled[0m
-  @reboot
-  echo "ellipsis.test"
+cron.print_job ellipsis.update
+cron.print_job ellipsis.test
+cron.print_job ellipsis.disabled

@@ -30,6 +30,30 @@ cron.update_crontab() {
 
 ##############################################################################
 
+cron.print_job() {
+    local name=$1
+    local job="$(cron.get_job "$name")"
+
+    local color1="\033[32m"
+    local color2="\033[0m"
+
+    # Remove leading #'s and mark disabled
+    if [ "${job:0:1}" = "#" ]; then
+        job="${job:1}"
+        color1="\033[33m"
+        color2="\033[0m"
+    fi
+
+    local time="$(cron.get_time "$job")"
+    local cmd="$(cron.get_cmd "$job")"
+
+    msg.print "$color1$name$color2"
+    msg.print "  $time"
+    msg.print "  $cmd"
+}
+
+##############################################################################
+
 cron.list_jobs() {
     awk '/^# Ellipsis-Cron : / { print $NF }' <<< "$CRONTAB"
 }
@@ -336,29 +360,19 @@ cron.run() {
 ##############################################################################
 
 cron.list() {
+    local name="$1"
 
-    # Print all jobs
-    for name in $(cron.list_jobs); do
-
-        local job="$(cron.get_job "$name")"
-
-        local color1="\033[32m"
-        local color2="\033[0m"
-
-        # Remove leading #'s and mark disabled
-        if [ "${job:0:1}" = "#" ]; then
-            job="${job:1}"
-            color1="\033[33m"
-            color2="\033[0m"
-        fi
-
-        local time="$(cron.get_time "$job")"
-        local cmd="$(cron.get_cmd "$job")"
-
-        msg.print "$color1$name$color2"
-        msg.print "  $time"
-        msg.print "  $cmd"
-    done
+    if [ "$name" = "all" -o -z "$name" ]; then
+        # Print all jobs
+        for name in $(cron.list_jobs); do
+            cron.print_job "$name"
+        done
+    elif [ -z "$(cron.get_job "$name")" ]; then
+        msg.print "Please provide a valid job name"
+        exit 1
+    else
+        cron.print_job "$name"
+    fi
 }
 
 ##############################################################################

@@ -108,6 +108,34 @@ helper.cron.rename() {
     [ "${lines[2]}" = "ellipsis.disabled" ]
 }
 
+@test "cron.print_job prints job" {
+    skip "No test implementation"
+    # Enabled
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    ELLIPSIS_FORCE_COLOR=1
+    run cron.print_job ellipsis.update
+    [ "$status" -eq 0 ]
+
+    # Disabled
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    ELLIPSIS_FORCE_COLOR=1
+    run cron.print_job ellipsis.disabled
+    [ "$status" -eq 0 ]
+}
+
+@test "cron.print_job prints job (non-interactive)" {
+    skip "No test implementation"
+    # Enabled
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.print_job ellipsis.update
+    [ "$status" -eq 0 ]
+
+    # Disabled
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.print_job ellipsis.disabled
+    [ "$status" -eq 0 ]
+}
+
 @test "cron.get_job returns cron job" {
     CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
     run cron.get_job ellipsis.update
@@ -484,12 +512,31 @@ helper.cron.rename() {
     [ "$output" = "Please provide a valid job name" ]
 }
 
-@test "cron.list lists jobs" {
+@test "cron.list (all) lists all jobs" {
+    cron.print_job() {
+        echo "cron.print_job $@"
+    }
+
     CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
-    ELLIPSIS_FORCE_COLOR=1
     run cron.list
     [ "$status" -eq 0 ]
     [ "$output" = "$(cat "$TESTS_DIR/crontab/file1.cron.list")" ]
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.list all
+    [ "$status" -eq 0 ]
+    [ "$output" = "$(cat "$TESTS_DIR/crontab/file1.cron.list")" ]
+}
+
+@test "cron.list <job> prints a single job" {
+    cron.print_job() {
+        echo "cron.print_job $@"
+    }
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.list ellipsis.test
+    [ "$status" -eq 0 ]
+    [ "$output" = "cron.print_job ellipsis.test" ]
 }
 
 @test "cron.edit lets you edit the crontab file" {
