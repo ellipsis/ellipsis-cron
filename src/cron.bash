@@ -173,7 +173,7 @@ cron.chtime() {
     fi
 
     local time="$2"
-    if [ -z "$time" ]; then
+    if [ -z "$time" -o "${time:0:1}" = "#" ]; then
         msg.print "Please provide a valid time string"
         exit 1
     fi
@@ -181,6 +181,11 @@ cron.chtime() {
     local job="$(cron.get_job "$name")"
     local c_time="$(cron.get_time "$job")"
     local c_cmd="$(cron.get_cmd "$job")"
+
+    # Keep disabled jobs disabled
+    if [ "${c_time:0:1}" = "#" ]; then
+        time="#$time"
+    fi
 
     # Do nothing if time and command are the same
     if [ "$time" == "$c_time" ]; then

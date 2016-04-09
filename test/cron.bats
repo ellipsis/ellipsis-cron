@@ -266,6 +266,13 @@ helper.cron.rename() {
     [ "${lines[0]}" = "cron.update_crontab" ]
     [ "${lines[1]}" = "# Ellipsis-Cron : ellipsis.test_new" ]
     [ "${lines[2]}" = '@hourly echo "test"' ]
+
+    CRONTAB="# Ellipsis-Cron : ellipsis.disabled"$'\n''#@reboot echo "ellipsis.test"'
+    run helper.cron.chtime ellipsis.disabled '@hourly'
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "cron.update_crontab" ]
+    [ "${lines[1]}" = "# Ellipsis-Cron : ellipsis.disabled" ]
+    [ "${lines[2]}" = '#@hourly echo "ellipsis.test"' ]
 }
 
 @test "cron.chtime only alters crontab if needed" {
@@ -295,13 +302,18 @@ helper.cron.rename() {
     [ "$output" = "Please provide a valid job name" ]
 }
 
-@test "cron.chtime fails if new time is missing" {
+@test "cron.chtime fails if new time is invalid" {
     cron.update_crontab() {
         echo "ERROR"
     }
 
     CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
     run cron.chtime ellipsis.test
+    [ "$status" -eq 1 ]
+    [ "$output" = "Please provide a valid time string" ]
+
+    CRONTAB="$(cat "$TESTS_DIR/crontab/file1.cron")"
+    run cron.chtime ellipsis.test '#@reboot'
     [ "$status" -eq 1 ]
     [ "$output" = "Please provide a valid time string" ]
 }
