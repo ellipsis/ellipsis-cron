@@ -26,7 +26,6 @@ need to symlink `.ellipsis/bin/ellipsis-cron` to a folder that is in your path.
 ### Usage
 
 #### Adding, removing and showing cron jobs
-
 To add a job you simply call `ellipsis-cron add` followed by a `name`, `time`,
 and `command`. Please take special care of escaping time and command strings!
 
@@ -73,7 +72,6 @@ ellipsis-cron chcmd ellipsis.update '$HOME/.ellipsis/bin/ellipsis update >/tmp/e
 ```
 
 #### Enabling or disabling a job
-
 Instead of removing jobs when they are not needed for a certain amount of time,
 you can simply disable them with `ellipsis-cron disable <job name>`. To re
 enable the job you call `ellipsis-cron enable <job name>`.
@@ -85,9 +83,18 @@ ellipsis-cron disable ellipsis.update
 # Enable ellipsis.update job
 ellipsis-cron enable ellipsis.update
 ```
+#### Run a job manually
+If you need to run a job manually just call `ellipsis-cron run <job name>`.
+This will run the job in your current terminal. This can be very convenient for
+debugging purposes. (Note, this will use the current `$PATH`, not the one used
+by the cron daemon)
+
+```bash
+# Run ellipsis.update manually
+ellipsis-cron run ellipsis.update
+```
 
 #### Manual crontab editing
-
 Please be careful when manually editing the crontab file! Ellipsis-cron uses
 special comments to keep track of jobs. However, if you don't alter comments
 starting with `# Ellipsis-cron...` and lines following these comments you
