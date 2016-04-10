@@ -109,7 +109,7 @@ ellipsis-cron edit
 Please consult the [docs][docs-url] for more information.
 
 Specific parts that could be off interest:
-- [Installation][docs-installation]
+- [Installation][docs-install]
 - [Usage][docs-usage]
 
 ### Development
