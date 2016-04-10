@@ -109,7 +109,8 @@ ellipsis-cron edit
 Please consult the [docs][docs-url] for more information.
 
 Specific parts that could be off interest:
-- ...
+- [Installation][docs-installation]
+- [Usage][docs-usage]
 
 ### Development
 Pull requests welcome! New code should follow the [existing style][style-guide]
@@ -131,6 +132,9 @@ Ellipsis-Cron is open-source software licensed under the [MIT license][mit-licen
 [tag-url]:      https://github.com/ellipsis/ellipsis-cron/tags
 [gitter-image]: https://badges.gitter.im/ellipsis/ellipsis.svg
 [gitter-url]:   https://gitter.im/ellipsis/ellipsis
+
+[docs-install]: http://ellipsis-cron.readthedocs.org/en/master/install
+[docs-usage]:   http://ellipsis-cron.readthedocs.org/en/master/usage
 
 [ellipsis]:     https://github.com/ellipsis/ellipsis
 
