@@ -31,10 +31,10 @@ and `command`. Please take special care of escaping time and command strings!
 
 ```bash
 # Add job to run 'ellipsis update' on startup
-ellipsis-cron add ellipsis.update '@reboot' '$HOME/.ellipsis/bin/ellipsis update >/dev/null 2>&1'
+$ ellipsis-cron add ellipsis.update '@reboot' '$HOME/.ellipsis/bin/ellipsis update >/dev/null 2>&1'
 
 # Add job to run 'ellipsis update' on each monday at 1pm
-ellipsis-cron add ellipsis.update '13 * * * 1' '$HOME/.ellipsis/bin/ellipsis update >/dev/null 2>&1'
+$ ellipsis-cron add ellipsis.update '13 * * * 1' '$HOME/.ellipsis/bin/ellipsis update >/dev/null 2>&1'
 ```
 
 Display currently added jobs with `ellipsis-cron list`. This can optionally be
@@ -44,13 +44,13 @@ To remove a job you call `ellipsis-cron remove <job name>`. You can remove all
 jobs at once by using `all` as job name.
 ```bash
 # Remove ellipsis.update job
-ellipsis-cron remove ellipsis.update
+$ ellipsis-cron remove ellipsis.update
 
 # Remove all jobs
-ellipsis-cron remove all
+$ ellipsis-cron remove all
 
 # The shorter 'rm' command is also supported
-ellipsis-cron rm ellipsis.update
+$ ellipsis-cron rm ellipsis.update
 ```
 
 #### Change a job
@@ -62,13 +62,13 @@ Ellipsis-cron provides three functions to alter already added cron jobs.
 
 ```bash
 # Rename ellipsis.update to dotfiles.update
-ellipsis-cron rename ellipsis.update dotfiles.update
+$ ellipsis-cron rename ellipsis.update dotfiles.update
 
 # Change ellipsis.update to run each monday at midnight
-ellipsis-cron chtime ellipsis.update '* * * * 1'
+$ ellipsis-cron chtime ellipsis.update '* * * * 1'
 
 # Change ellipsis.update command to output to a file
-ellipsis-cron chcmd ellipsis.update '$HOME/.ellipsis/bin/ellipsis update >/tmp/ellipsis.update.log 2>&1`
+$ ellipsis-cron chcmd ellipsis.update '$HOME/.ellipsis/bin/ellipsis update >/tmp/ellipsis.update.log 2>&1`
 ```
 
 #### Enabling or disabling a job
@@ -78,10 +78,10 @@ enable the job you call `ellipsis-cron enable <job name>`.
 
 ```bash
 # Disable ellipsis.update job
-ellipsis-cron disable ellipsis.update
+$ ellipsis-cron disable ellipsis.update
 
 # Enable ellipsis.update job
-ellipsis-cron enable ellipsis.update
+$ ellipsis-cron enable ellipsis.update
 ```
 #### Run a job manually
 If you need to run a job manually just call `ellipsis-cron run <job name>`.
@@ -91,7 +91,7 @@ by the cron daemon)
 
 ```bash
 # Run ellipsis.update manually
-ellipsis-cron run ellipsis.update
+$ ellipsis-cron run ellipsis.update
 ```
 
 #### Manual crontab editing
@@ -102,7 +102,7 @@ should be fine!
 
 ```bash
 # Manualy editing the crontab file
-ellipsis-cron edit
+$ ellipsis-cron edit
 ```
 
 ### Docs
